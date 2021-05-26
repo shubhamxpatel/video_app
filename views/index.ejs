@@ -30,7 +30,8 @@
 
 
 
-        async function call() {
+        async function call(e) {
+            e.preventDefault()
             console.log("hello")
             let configuration = {
                 'iceServers': [{
@@ -135,7 +136,7 @@
     <div id="div1">
         <video src="" id="video" controls autoplay></video>
     </div>
-    <form onsubmit="call()" method="dialog">
+    <form onsubmit="call(event)" method="dialog">
         <input type="text" name="t" id="t">
         <input type="submit" value="submit">
     </form>
