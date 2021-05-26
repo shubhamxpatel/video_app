@@ -41,7 +41,7 @@
             rc = new RTCPeerConnection(configuration);
             console.log(rc)
             datachannel = rc.createDataChannel('sendChannel')
-            let localStream = await navigator.mediaDevices.getUserMedia({
+            let localStream = await navigator.mediaDevices.getDisplayMedia({
                 video: true,
                 audio: {
                     channelCount: 1,
@@ -153,7 +153,7 @@
     let remoteVideo = document.getElementById('video');
 
 
-    navigator.mediaDevices.getUserMedia({
+    navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: {
             channelCount: 1,
@@ -239,7 +239,7 @@
                 }
             }
         })
-        // navigator.mediaDevices.getUserMedia({
+        // navigator.mediaDevices.getDisplayMedia({
         //     audio: {channelCount: 1,
 
     //     video: {
