@@ -146,7 +146,7 @@
 
     let remoteStream = new MediaStream();
     let remoteVideo = document.getElementById('video');
-    //remoteVideo.srcObject = remoteStream;
+    remoteVideo.srcObject = remoteStream;
 
 
     navigator.mediaDevices.getUserMedia({
