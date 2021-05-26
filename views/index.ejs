@@ -104,6 +104,26 @@
                     })
                 }
             }
+            rc.addEventListener('connectionstatechange', async(e) => {
+                if (rc.connectionState === 'connected') {
+                    // Peers connected!
+                    let stats = await rc.getStats();
+                    for (const value of stats.values()) {
+                        if (value.type == "local-candidate" || value.type == "remote-candidate")
+                            console.log(value);
+                    }
+                }
+            })
+            socket.on('setice', async message => {
+                if (message.iceCandidate) {
+                    try {
+                        console.log(message.iceCandidate)
+                        await rc.addIceCandidate(message.iceCandidate);
+                    } catch (e) {
+                        console.error('Error adding received ice candidate', e);
+                    }
+                }
+            })
             socket.on('answer', async(res) => {
                 console.log(res)
                 remoteDesc = new RTCSessionDescription(res);
@@ -149,7 +169,11 @@
             'urls': 'stun:stun.l.google.com:19302'
         }]
     }
+    console.log(configuration)
     var peerConnection = new RTCPeerConnection(configuration);
+    //dataChannel1 = peerConnection.createDataChannel('label2')
+    //console.log(dataChannel1)
+
 
     /* let remoteStream = new MediaStream();
      let remoteVideo = document.getElementById('video');
@@ -181,10 +205,19 @@
     peerConnection.addEventListener('datachannel', event => {
         dataChannel1 = event.channel;
         dataChannel1.onopen = async function() {
-            remoteVideo.srcObject = remoteStream;
+            //remoteVideo.srcObject = remoteStream;
 
             console.log("receiver channel is open")
-
+            peerConnection.onconnectionstatechange = async(e) => {
+                if (peerConnection.connectionState === 'connected') {
+                    // Peers connected!
+                    let stats = await peerConnection.getStats();
+                    for (const value of stats.values()) {
+                        if (value.type == "local-candidate" || value.type == "remote-candidate")
+                            console.log(value);
+                    }
+                }
+            }
 
 
 
@@ -227,6 +260,15 @@
             'answer': answer,
             'to': message.to
         });
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                console.log(event.candidate)
+                socket.emit('icecandidate', {
+                    candidate: event.candidate,
+                    to: message.to
+                })
+            }
+        }
 
 
     })

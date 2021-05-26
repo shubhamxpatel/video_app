@@ -17,6 +17,7 @@ io.on(
             io.to(message.to).emit('answer', message.answer)
         })
         client.on('icecandidate', (message) => {
+            console.log(message)
             io.to(message.to).emit('setice', { iceCandidate: message.candidate })
         })
     }
