@@ -39,23 +39,24 @@
             }
             console.log(JSON.stringify(configuration))
             rc = new RTCPeerConnection(configuration);
+            console.log(rc)
             datachannel = rc.createDataChannel('sendChannel')
-            let localStream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true
-            });
+                /*let localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
 
 
-            localStream.getTracks().forEach(track => {
-                rc.addTrack(track, localStream);
-            });
-            let remotestream = new MediaStream()
-            document.getElementById("video").srcObject = remotestream
-            rc.addEventListener('track', async(event) => {
-                console.log("track received", event.track)
+                localStream.getTracks().forEach(track => {
+                    rc.addTrack(track, localStream);
+                });
+                let remotestream = new MediaStream()
+                document.getElementById("video").srcObject = remotestream
+                rc.addEventListener('track', async(event) => {
+                    console.log("track received", event.track)
 
-                remotestream.addTrack(event.track, remotestream)
-            })
+                    remotestream.addTrack(event.track, remotestream)
+                })*/
             datachannel.onopen = async function(event) {
                 console.log("channel is open for caller")
 
@@ -142,7 +143,7 @@
         }]
     }
     var peerConnection = new RTCPeerConnection(configuration);
-    let remoteStream = new MediaStream();
+    /*let remoteStream = new MediaStream();
     let remoteVideo = document.getElementById('video');
     remoteVideo.srcObject = remoteStream;
 
@@ -156,7 +157,7 @@
             console.log(track)
             peerConnection.addTrack(track, localStream);
         });
-    })
+    })*/
 
     peerConnection.addEventListener('track', async(event) => {
 
