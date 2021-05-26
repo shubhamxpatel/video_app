@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+        <%= title %>
+    </title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io()
+        setTimeout(() => {
+            let p = document.createElement('p')
+            p.innerText = `your id is ${socket.id}`
+            console.log(socket.id)
+            document.body.appendChild(p)
+        }, 3000);
+        document.onload = function() {
+
+        }
+        console.log(socket.id)
+        var rc = new RTCPeerConnection();
+        var datachannel;
+
+
+        function send() {
+            console.log(document.getElementById("t").value)
+            socket.emit('data', document.getElementById("t").value)
+        }
+
+
+
+        async function call() {
+            console.log("hello")
+            let configuration = {
+                'iceServers': [{
+                    'urls': 'stun:stun.l.google.com:19302'
+                }]
+            }
+            rc = new RTCPeerConnection(configuration);
+            datachannel = rc.createDataChannel('sendChannel')
+            let localStream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true
+            });
+
+
+            localStream.getTracks().forEach(track => {
+                rc.addTrack(track, localStream);
+            });
+            let remotestream = new MediaStream()
+            document.getElementById("video").srcObject = remotestream
+            rc.addEventListener('track', async(event) => {
+                console.log("track received", event.track)
+
+                remotestream.addTrack(event.track, remotestream)
+            })
+            datachannel.onopen = async function(event) {
+                console.log("channel is open for caller")
+
+
+
+                let div = document.createElement("div")
+                let input = document.createElement("input")
+                input.type = "text"
+                input.id = "send"
+                let btn = document.createElement("button")
+                btn.innerText = "SEND_MESSAGE"
+                div.appendChild(input)
+                div.appendChild(btn)
+                document.body.appendChild(div)
+                btn.onclick = () => {
+                    let p = document.createElement("p")
+                    p.style.color = "red"
+                    p.innerText = document.getElementById("send").value
+                    datachannel.send(p.innerText)
+                    document.body.appendChild(p);
+                }
+            }
+            datachannel.onmessage = function(message) {
+                let p = document.createElement("p")
+                console.log(message.data)
+                p.style.color = "green"
+                p.innerText = message.data
+                    //datachannel.send(p.innerText)
+                document.body.appendChild(p);
+            }
+            console.log(datachannel)
+
+            rc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('icecandidate', {
+                        candidate: event.candidate,
+                        to: document.getElementById("t").value
+                    })
+                }
+            }
+            socket.on('answer', async(res) => {
+                console.log(res)
+                remoteDesc = new RTCSessionDescription(res);
+                await rc.setRemoteDescription(remoteDesc);
+
+                console.log(datachannel)
+
+
+                console.log("call answered")
+            })
+            let offer = await rc.createOffer();
+            await rc.setLocalDescription(offer);
+            socket.emit(
+                'makeCall', {
+                    offer: offer,
+                    to: document.getElementById("t").value
+                }
+            );
+
+        }
+    </script>
+</head>
+
+<body>
+    <h1>
+        <%= title %>
+    </h1>
+    <p>Welcome to
+        <%= title %>
+    </p>
+    <div id="div1">
+        <video src="" id="video" controls></video>
+    </div>
+    <form onsubmit="call()" method="dialog">
+        <input type="text" name="t" id="t">
+        <input type="submit" value="submit">
+    </form>
+</body>
+<script>
+    var dataChannel1;
+    let configuration = {
+        'iceServers': [{
+            'urls': 'stun:stun.l.google.com:19302'
+        }]
+    }
+    var peerConnection = new RTCPeerConnection(configuration);
+    let remoteStream = new MediaStream();
+    let remoteVideo = document.getElementById('video');
+    remoteVideo.srcObject = remoteStream;
+
+
+    navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+    }).then(localStream => {
+        console.log(localStream.getTracks())
+        localStream.getTracks().forEach(track => {
+            console.log(track)
+            peerConnection.addTrack(track, localStream);
+        });
+    })
+
+    peerConnection.addEventListener('track', async(event) => {
+
+        console.log(event.track)
+        remoteStream.addTrack(event.track, remoteStream);
+    });
+
+    var datachannel1;
+    peerConnection.addEventListener('datachannel', event => {
+        dataChannel1 = event.channel;
+        dataChannel1.onopen = async function() {
+            console.log("receiver channel is open")
+
+
+
+
+
+            let div = document.createElement("div")
+            let input = document.createElement("input")
+            input.type = "text"
+            input.id = "send"
+            let btn = document.createElement("button")
+            btn.innerText = "SEND_MESSAGE"
+            div.appendChild(input)
+            div.appendChild(btn)
+            document.body.appendChild(div)
+            btn.onclick = () => {
+                let p = document.createElement("p")
+                p.style.color = "red"
+                p.innerText = document.getElementById("send").value
+                dataChannel1.send(p.innerText)
+                document.body.appendChild(p);
+            }
+
+        }
+        dataChannel1.onmessage = function(message) {
+            console.log(message.data)
+            let p = document.createElement("p")
+            p.style.color = "green"
+            p.innerText = message.data
+
+            document.body.appendChild(p);
+        }
+    });
+
+    socket.on('offer', async(message) => {
+        console.log(message.to)
+        peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+        let answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+
+        socket.emit('respondcall', {
+            'answer': answer,
+            'to': message.to
+        });
+
+
+    })
+
+    socket.on('setice', async message => {
+            if (message.iceCandidate) {
+                try {
+                    console.log(message.iceCandidate)
+                    await peerConnection.addIceCandidate(message.iceCandidate);
+                } catch (e) {
+                    console.error('Error adding received ice candidate', e);
+                }
+            }
+        })
+        // navigator.mediaDevices.getUserMedia({
+        //     audio: true,
+        //     video: {
+        //         height: 400,
+        //         width: 600
+        //     }
+        // }).then(stream => {
+        //     document.getElementById("video").srcObject = stream
+        // })
+</script>
+
+</html>
