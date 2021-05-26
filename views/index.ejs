@@ -43,7 +43,12 @@
             datachannel = rc.createDataChannel('sendChannel')
             let localStream = await navigator.mediaDevices.getUserMedia({
                 video: true,
-                audio: true
+                audio: {
+                    channelCount: 1,
+                    sampleRate: 16000,
+                    sampleSize: 16,
+                    volume: 1
+                }
             });
 
 
@@ -128,7 +133,7 @@
         <%= title %>
     </p>
     <div id="div1">
-        <video src="" id="video" controls></video>
+        <video src="" id="video" controls autoplay></video>
     </div>
     <form onsubmit="call()" method="dialog">
         <input type="text" name="t" id="t">
@@ -150,7 +155,12 @@
 
     navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: true
+        audio: {
+            channelCount: 1,
+            sampleRate: 16000,
+            sampleSize: 16,
+            volume: 1
+        }
     }).then(localStream => {
         console.log(localStream.getTracks())
         localStream.getTracks().forEach(track => {
@@ -230,14 +240,18 @@
             }
         })
         // navigator.mediaDevices.getUserMedia({
-        //     audio: true,
-        //     video: {
-        //         height: 400,
-        //         width: 600
-        //     }
-        // }).then(stream => {
-        //     document.getElementById("video").srcObject = stream
-        // })
+        //     audio: {channelCount: 1,
+    sampleRate: 16000,
+        sampleSize: 16,
+        volume: 1
+    },
+    //     video: {
+    //         height: 400,
+    //         width: 600
+    //     }
+    // }).then(stream => {
+    //     document.getElementById("video").srcObject = stream
+    // })
 </script>
 
 </html>
