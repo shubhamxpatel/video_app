@@ -21,7 +21,15 @@
         console.log(socket.id)
         var rc = new RTCPeerConnection();
         var datachannel;
-
+        var configuration = {
+            'iceServers': [{
+                'urls': 'stun:stun.l.google.com:19302'
+            }, {
+                url: 'turn:relay.backups.cz?transport=tcp',
+                credential: 'webrtc',
+                username: 'webrtc'
+            }, ]
+        }
 
         function send() {
             console.log(document.getElementById("t").value)
@@ -33,11 +41,7 @@
         async function call(e) {
             e.preventDefault()
             console.log("hello")
-            let configuration = {
-                'iceServers': [{
-                    'urls': 'stun:stun.l.google.com:19302'
-                }]
-            }
+
             console.log(JSON.stringify(configuration))
             rc = new RTCPeerConnection(configuration);
             console.log(rc)
@@ -164,11 +168,7 @@
 </body>
 <script>
     var dataChannel1;
-    let configuration = {
-        'iceServers': [{
-            'urls': 'stun:stun.l.google.com:19302'
-        }]
-    }
+
     console.log(configuration)
     var peerConnection = new RTCPeerConnection(configuration);
     //dataChannel1 = peerConnection.createDataChannel('label2')
