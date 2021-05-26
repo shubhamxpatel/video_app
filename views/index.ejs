@@ -97,6 +97,7 @@
 
             rc.onicecandidate = (event) => {
                 if (event.candidate) {
+                    console.log(event.candidate)
                     socket.emit('icecandidate', {
                         candidate: event.candidate,
                         to: document.getElementById("t").value
