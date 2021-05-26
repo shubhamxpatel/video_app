@@ -143,6 +143,13 @@
         }]
     }
     var peerConnection = new RTCPeerConnection(configuration);
+    navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+    }).then(localStream => {
+        document.getElementById("video").srcObject = localStream
+    });
+
     /*let remoteStream = new MediaStream();
     let remoteVideo = document.getElementById('video');
     remoteVideo.srcObject = remoteStream;
