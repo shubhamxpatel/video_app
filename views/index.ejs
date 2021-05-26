@@ -42,27 +42,27 @@
             rc = new RTCPeerConnection(configuration);
             console.log(rc)
             datachannel = rc.createDataChannel('sendChannel')
-            let localStream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: {
-                    channelCount: 1,
-                    sampleRate: 16000,
-                    sampleSize: 16,
-                    volume: 1
-                }
-            });
+                /*let localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: {
+                        channelCount: 1,
+                        sampleRate: 16000,
+                        sampleSize: 16,
+                        volume: 1
+                    }
+                });
 
 
-            localStream.getTracks().forEach(track => {
-                rc.addTrack(track, localStream);
-            });
-            let remotestream = new MediaStream()
-            document.getElementById("video").srcObject = remotestream
-            rc.addEventListener('track', async(event) => {
-                console.log("track received", event.track)
+                localStream.getTracks().forEach(track => {
+                    rc.addTrack(track, localStream);
+                });
+                let remotestream = new MediaStream()
+                document.getElementById("video").srcObject = remotestream
+                rc.addEventListener('track', async(event) => {
+                    console.log("track received", event.track)
 
-                remotestream.addTrack(event.track, remotestream)
-            })
+                    remotestream.addTrack(event.track, remotestream)
+                })*/
             datachannel.onopen = async function(event) {
                 console.log("channel is open for caller")
 
@@ -151,31 +151,31 @@
     }
     var peerConnection = new RTCPeerConnection(configuration);
 
-    let remoteStream = new MediaStream();
-    let remoteVideo = document.getElementById('video');
+    /* let remoteStream = new MediaStream();
+     let remoteVideo = document.getElementById('video');
 
 
-    navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: {
-            channelCount: 1,
-            sampleRate: 16000,
-            sampleSize: 16,
-            volume: 1
-        }
-    }).then(localStream => {
-        console.log(localStream.getTracks())
-        localStream.getTracks().forEach(track => {
-            console.log(track)
-            peerConnection.addTrack(track, localStream);
-        });
-    })
+     navigator.mediaDevices.getUserMedia({
+         video: true,
+         audio: {
+             channelCount: 1,
+             sampleRate: 16000,
+             sampleSize: 16,
+             volume: 1
+         }
+     }).then(localStream => {
+         console.log(localStream.getTracks())
+         localStream.getTracks().forEach(track => {
+             console.log(track)
+             peerConnection.addTrack(track, localStream);
+         });
+     })
 
-    peerConnection.addEventListener('track', async(event) => {
+     peerConnection.addEventListener('track', async(event) => {
 
-        console.log(event.track)
-        remoteStream.addTrack(event.track, remoteStream);
-    });
+         console.log(event.track)
+         remoteStream.addTrack(event.track, remoteStream);
+     });*/
 
     var datachannel1;
     peerConnection.addEventListener('datachannel', event => {
