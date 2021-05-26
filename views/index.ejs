@@ -50,13 +50,13 @@
             localStream.getTracks().forEach(track => {
                 rc.addTrack(track, localStream);
             });
-            /*let remotestream = new MediaStream()
+            let remotestream = new MediaStream()
             document.getElementById("video").srcObject = remotestream
             rc.addEventListener('track', async(event) => {
                 console.log("track received", event.track)
 
                 remotestream.addTrack(event.track, remotestream)
-            })*/
+            })
             datachannel.onopen = async function(event) {
                 console.log("channel is open for caller")
 
@@ -146,7 +146,6 @@
 
     let remoteStream = new MediaStream();
     let remoteVideo = document.getElementById('video');
-    remoteVideo.srcObject = remoteStream;
 
 
     navigator.mediaDevices.getUserMedia({
@@ -160,16 +159,18 @@
         });
     })
 
-    /*peerConnection.addEventListener('track', async(event) => {
+    peerConnection.addEventListener('track', async(event) => {
 
         console.log(event.track)
         remoteStream.addTrack(event.track, remoteStream);
-    });*/
+    });
 
     var datachannel1;
     peerConnection.addEventListener('datachannel', event => {
         dataChannel1 = event.channel;
         dataChannel1.onopen = async function() {
+            remoteVideo.srcObject = remoteStream;
+
             console.log("receiver channel is open")
 
 
