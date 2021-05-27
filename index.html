@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+        app
+    </title>
+    <style>
+        body {
+            padding: 50px;
+            font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+        }
+        
+        a {
+            color: #00B7FF;
+        }
+    </style>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+
+    <script>
+        var socket = io('https://spvideoapp.herokuapp.com')
+        setTimeout(() => {
+            let p = document.createElement('p')
+            p.innerText = `your id is ${socket.id}`
+            console.log(socket.id)
+            document.body.appendChild(p)
+        }, 3000);
+        document.onload = function() {
+
+        }
+        console.log(socket.id)
+        var rc = new RTCPeerConnection();
+        var datachannel;
+        var configuration = {
+            'iceServers': [{
+                url: 'stun:stun.l.google.com:19302'
+            }, {
+                url: 'turn:3.143.222.94.3478',
+                credential: 'root',
+                username: 'user'
+            }]
+        }
+
+        function send() {
+            console.log(document.getElementById("t").value)
+            socket.emit('data', document.getElementById("t").value)
+        }
+
+
+
+        async function call(e) {
+            e.preventDefault()
+            console.log("hello")
+
+            console.log(JSON.stringify(configuration))
+            rc = new RTCPeerConnection(configuration);
+            console.log(rc)
+            datachannel = rc.createDataChannel('sendChannel')
+            let localStream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: {
+                    channelCount: 1,
+                    sampleRate: 16000,
+                    sampleSize: 16,
+                    volume: 1
+                }
+            });
+
+
+            localStream.getTracks().forEach(track => {
+                rc.addTrack(track, localStream);
+            });
+            let remotestream = new MediaStream()
+            document.getElementById("video").srcObject = remotestream
+            rc.addEventListener('track', async(event) => {
+                console.log("track received", event.track)
+
+                remotestream.addTrack(event.track, remotestream)
+            })
+            datachannel.onopen = async function(event) {
+                console.log("channel is open for caller")
+
+
+
+                let div = document.createElement("div")
+                let input = document.createElement("input")
+                input.type = "text"
+                input.id = "send"
+                let btn = document.createElement("button")
+                btn.innerText = "SEND_MESSAGE"
+                div.appendChild(input)
+                div.appendChild(btn)
+                document.body.appendChild(div)
+                btn.onclick = () => {
+                    let p = document.createElement("p")
+                    p.style.color = "red"
+                    p.innerText = document.getElementById("send").value
+                    datachannel.send(p.innerText)
+                    document.body.appendChild(p);
+                }
+            }
+            datachannel.onmessage = function(message) {
+                let p = document.createElement("p")
+                console.log(message.data)
+                p.style.color = "green"
+                p.innerText = message.data
+                    //datachannel.send(p.innerText)
+                document.body.appendChild(p);
+            }
+            console.log(datachannel)
+
+            rc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    console.log(event.candidate)
+                    socket.emit('icecandidate', {
+                        candidate: event.candidate,
+                        to: document.getElementById("t").value
+                    })
+                }
+            }
+            rc.addEventListener('connectionstatechange', async(e) => {
+                if (rc.connectionState === 'connected') {
+                    // Peers connected!
+                    let stats = await rc.getStats();
+                    for (const value of stats.values()) {
+                        if (value.type == "local-candidate" || value.type == "remote-candidate")
+                            console.log(value);
+                    }
+                }
+            })
+            socket.on('setice', async message => {
+                if (message.iceCandidate) {
+                    try {
+                        console.log(message.iceCandidate)
+                        await rc.addIceCandidate(message.iceCandidate);
+                    } catch (e) {
+                        console.error('Error adding received ice candidate', e);
+                    }
+                }
+            })
+            socket.on('answer', async(res) => {
+                console.log(res)
+                remoteDesc = new RTCSessionDescription(res);
+                await rc.setRemoteDescription(remoteDesc);
+
+                console.log(datachannel)
+
+
+                console.log("call answered")
+            })
+            let offer = await rc.createOffer();
+            await rc.setLocalDescription(offer);
+            socket.emit(
+                'makeCall', {
+                    offer: offer,
+                    to: document.getElementById("t").value
+                }
+            );
+
+        }
+    </script>
+</head>
+
+<body>
+    <h1>
+        <div id="div1">
+            <video src="" id="video" controls autoplay></video>
+        </div>
+        <form onsubmit="call(event)" method="dialog">
+            <input type="text" name="t" id="t">
+            <input type="submit" value="submit">
+        </form>
+</body>
+<script>
+    var dataChannel1;
+
+    console.log(configuration)
+    var peerConnection = new RTCPeerConnection(configuration);
+    //dataChannel1 = peerConnection.createDataChannel('label2')
+    //console.log(dataChannel1)
+
+
+    let remoteStream = new MediaStream();
+    let remoteVideo = document.getElementById('video');
+
+
+    navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: {
+            channelCount: 1,
+            sampleRate: 16000,
+            sampleSize: 16,
+            volume: 1
+        }
+    }).then(localStream => {
+        console.log(localStream.getTracks())
+        localStream.getTracks().forEach(track => {
+            console.log(track)
+            peerConnection.addTrack(track, localStream);
+        });
+    })
+
+    peerConnection.addEventListener('track', async(event) => {
+
+        console.log(event.track)
+        remoteStream.addTrack(event.track, remoteStream);
+    });
+
+    var datachannel1;
+    peerConnection.addEventListener('datachannel', event => {
+        dataChannel1 = event.channel;
+        dataChannel1.onopen = async function() {
+            remoteVideo.srcObject = remoteStream;
+
+            console.log("receiver channel is open")
+            peerConnection.onconnectionstatechange = async(e) => {
+                if (peerConnection.connectionState === 'connected') {
+                    // Peers connected!
+                    let stats = await peerConnection.getStats();
+                    for (const value of stats.values()) {
+                        if (value.type == "local-candidate" || value.type == "remote-candidate")
+                            console.log(value);
+                    }
+                }
+            }
+
+
+
+
+            let div = document.createElement("div")
+            let input = document.createElement("input")
+            input.type = "text"
+            input.id = "send"
+            let btn = document.createElement("button")
+            btn.innerText = "SEND_MESSAGE"
+            div.appendChild(input)
+            div.appendChild(btn)
+            document.body.appendChild(div)
+            btn.onclick = () => {
+                let p = document.createElement("p")
+                p.style.color = "red"
+                p.innerText = document.getElementById("send").value
+                dataChannel1.send(p.innerText)
+                document.body.appendChild(p);
+            }
+
+        }
+        dataChannel1.onmessage = function(message) {
+            console.log(message.data)
+            let p = document.createElement("p")
+            p.style.color = "green"
+            p.innerText = message.data
+
+            document.body.appendChild(p);
+        }
+    });
+
+    socket.on('offer', async(message) => {
+        console.log(message.to)
+        peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+        let answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+
+        socket.emit('respondcall', {
+            'answer': answer,
+            'to': message.to
+        });
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                console.log(event.candidate)
+                socket.emit('icecandidate', {
+                    candidate: event.candidate,
+                    to: message.to
+                })
+            }
+        }
+
+
+    })
+
+    socket.on('setice', async message => {
+            if (message.iceCandidate) {
+                try {
+                    console.log(message.iceCandidate)
+                    await peerConnection.addIceCandidate(message.iceCandidate);
+                } catch (e) {
+                    console.error('Error adding received ice candidate', e);
+                }
+            }
+        })
+        // navigator.mediaDevices.getUserMedia({
+        //     audio: {channelCount: 1,
+
+    //     video: {
+    //         height: 400,
+    //         width: 600
+    //     }
+    // }).then(stream => {
+    //     document.getElementById("video").srcObject = stream
+    // })
+</script>
+
+</html>
