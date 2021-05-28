@@ -27,12 +27,13 @@
                 res.forEach(item => {
                     if (item.kind === "videoinput") {
                         camera.push(item)
+                        let p = document.createElement('p')
+
+                        p.innerText += JSON.stringify(item)
+                        document.body.appendChild(p)
                     }
                     console.log(item)
-                    let p = document.createElement('p')
 
-                    p.innerText += JSON.stringify(item)
-                    document.body.appendChild(p)
                 })
             })
             setTimeout(() => {
