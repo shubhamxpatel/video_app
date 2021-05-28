@@ -18,8 +18,21 @@
         document.onload = function() {
 
         }
+        var stream;
+        navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: {
+                channelCount: 1,
+                sampleRate: 16000,
+                sampleSize: 16,
+                volume: 1
+            }
+        }).then(x => {
+            console.log(stream)
+            stream = x
+        })
         console.log(socket.id)
-        var rc = new RTCPeerConnection();
+            //var rc = new RTCPeerConnection();
         var datachannel;
         var configuration = {
             'iceServers': [{
@@ -43,23 +56,16 @@
             console.log("hello")
 
             console.log(JSON.stringify(configuration))
-            rc = new RTCPeerConnection(configuration);
+            var rc = new RTCPeerConnection(configuration);
+            stream.getTracks().forEach(track => {
+                rc.addTrack(track, stream);
+            });
             console.log(rc)
             datachannel = rc.createDataChannel('sendChannel')
-            let localStream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: {
-                    channelCount: 1,
-                    sampleRate: 16000,
-                    sampleSize: 16,
-                    volume: 1
-                }
-            });
 
 
-            localStream.getTracks().forEach(track => {
-                rc.addTrack(track, localStream);
-            });
+
+
             let remotestream = new MediaStream()
             document.getElementById("video").srcObject = remotestream
             rc.addEventListener('track', async(event) => {
@@ -171,29 +177,30 @@
 
     console.log(configuration)
     var peerConnection = new RTCPeerConnection(configuration);
-    //dataChannel1 = peerConnection.createDataChannel('label2')
-    //console.log(dataChannel1)
+    navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: {
+                channelCount: 1,
+                sampleRate: 16000,
+                sampleSize: 16,
+                volume: 1
+            }
+        }).then(localStream => {
+            console.log(localStream.getTracks())
+            localStream.getTracks().forEach(track => {
+                console.log(track)
+                peerConnection.addTrack(track, localStream);
+            });
+        })
+        //dataChannel1 = peerConnection.createDataChannel('label2')
+        //console.log(dataChannel1)
 
 
     let remoteStream = new MediaStream();
     let remoteVideo = document.getElementById('video');
 
 
-    navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: {
-            channelCount: 1,
-            sampleRate: 16000,
-            sampleSize: 16,
-            volume: 1
-        }
-    }).then(localStream => {
-        console.log(localStream.getTracks())
-        localStream.getTracks().forEach(track => {
-            console.log(track)
-            peerConnection.addTrack(track, localStream);
-        });
-    })
+
 
     peerConnection.addEventListener('track', async(event) => {
 
@@ -208,6 +215,7 @@
             remoteVideo.srcObject = remoteStream;
 
             console.log("receiver channel is open")
+            peerConnection.restartIce()
             peerConnection.onconnectionstatechange = async(e) => {
                 if (peerConnection.connectionState === 'connected') {
                     // Peers connected!

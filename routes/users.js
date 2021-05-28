@@ -12,6 +12,11 @@ io.on(
                 to: client.id
             })
         })
+        client.on('create_connection', id1 => {
+            console.log('create_connection', id1)
+            io.to(id1).emit('create_connection', client.id)
+        })
+
         client.on('respondcall', (message) => {
             console.log("rs", message)
             io.to(message.to).emit('answer', message.answer)

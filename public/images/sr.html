@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        p {
+            border: 2px solid black;
+            padding: 5px;
+            width: calc(100%-4px);
+            word-wrap: break-word;
+        }
+    </style>
+    <script>
+        var i = 0;
+        var camera = []
+        window.onload = function() {
+
+
+            navigator.mediaDevices.enumerateDevices({
+                audio: true,
+                video: true
+            }).then(res => {
+                res.forEach(item => {
+                    if (item.kind === "videoinput") {
+                        camera.push(item)
+                    }
+                    console.log(item)
+                    let p = document.createElement('p')
+
+                    p.innerText += JSON.stringify(item)
+                    document.body.appendChild(p)
+                })
+            })
+            setTimeout(() => {
+                console.log(camera)
+                document.getElementById("div").style.visibility = "visible"
+
+            }, 3000);
+        }
+
+        function change() {
+            i++;
+            i %= camera.length
+            navigator.mediaDevices.getUserMedia({
+                    video: {
+                        deviceId: {
+                            exact: camera[i].deviceId
+                        }
+                    },
+                    audio: true
+                }).then(stream => {
+                    document.getElementById('video').srcObject = stream
+                })
+                .catch(error => {
+                    document.getElementById('p').innerText = "error occured"
+                })
+
+        }
+    </script>
+</head>
+
+<body>
+    <div id="div" style="visibility: hidden;">
+
+        <video src="" id="video" controls></video>
+        <button onclick="change()">Change</button>
+    </div>
+    <p id="p"></p>
+
+</body>
+
+</html>
