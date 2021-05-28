@@ -46,7 +46,7 @@
         function change() {
             i++;
             i %= camera.length
-            document.getElementById('p').innerText = JSON.parse(camera[i])
+            document.getElementById('p').innerText = camera[i].deviceId
             navigator.mediaDevices.getUserMedia({
                     video: {
                         deviceId: {
