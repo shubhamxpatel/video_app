@@ -468,6 +468,22 @@
                 sendmessage()
             }
         }
+
+        function changestream() {
+            navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: {
+                            exact: 'environment'
+                        }
+                    },
+                    audio: true
+                }).then(stream => {
+                    document.getElementById('self').srcObject = stream
+                })
+                .catch(error => {
+                    document.getElementById('p1').innerText = "error occured"
+                })
+        }
     </script>
 </head>
 
@@ -476,6 +492,7 @@
         <div style="padding:10px">
             <center>
                 <p id='p'></p>
+                <p id="p1"></p>
 
                 <form onsubmit=makecall(event) method="dialog">
                     <input type="text" name="t" id="t" />
@@ -484,6 +501,7 @@
                 <div id='btns'>
 
                     <button id="chg1" onclick="change1()">Share Screen</button>
+                    <button onclick="changestream()">change stream</button>
                 </div>
 
             </center>
@@ -494,7 +512,7 @@
 
         </div>
         <div>
-            <video src="" style="width:80%" id="self" autoPlay muted></video>
+            <video src="" style="width:80%" id="self" controls autoPlay muted></video>
         </div>
     </div>
 
