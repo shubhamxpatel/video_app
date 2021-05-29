@@ -19,11 +19,11 @@ io.on(
 
         client.on('respondcall', (message) => {
             console.log("rs", message)
-            io.to(message.to).emit('answer', message.answer)
+            io.to(message.to).emit('answer', { answer: message.answer, to: client.id })
         })
         client.on('icecandidate', (message) => {
             console.log(message)
-            io.to(message.to).emit('setice', { iceCandidate: message.candidate })
+            io.to(message.to).emit('setice', { iceCandidate: message.candidate, to: client.id })
         })
     }
 )
