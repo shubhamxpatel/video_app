@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        function front() {
+            navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user'
+                    },
+                    audio: true
+                }).then(stream => {
+                    document.getElementById('video').srcObject = stream
+                })
+                .catch(error => {
+                    document.getElementById('p').innerText = "error occured"
+                })
+        }
+
+        function back() {
+            navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: {
+                            exact: 'environment'
+                        }
+                    },
+                    audio: true
+                }).then(stream => {
+                    document.getElementById('video').srcObject = stream
+                })
+                .catch(error => {
+                    document.getElementById('p').innerText = "error occured"
+                })
+        }
+    </script>
+</head>
+
+<body>
+    <video src="" id='video' controls autoplay></video>
+    <button onclick="front()">front</button>
+    <button onclick="back()">back</button>
+    <p id="p"></p>
+</body>
+
+</html>
