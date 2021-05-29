@@ -191,15 +191,15 @@
                     p.innerText = 'back camera not supported'
                     document.body.appendChild(p)
                 })
-            navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true
-            }).then(x => {
+                /* navigator.mediaDevices.getUserMedia({
+                     video: true,
+                     audio: true
+                 }).then(x => {
 
-                stream = x
-                console.log(stream)
-                document.getElementById('self').srcObject = stream
-            })
+                     stream = x
+                     console.log(stream)
+                     document.getElementById('self').srcObject = stream
+                 })*/
         }
         var rid1 = ""
         socket1.on('create_connection', (id) => {
