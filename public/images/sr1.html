@@ -117,6 +117,13 @@
             //audio.loop=true
         audio.volume = 0.04
             //audio.play()
+        function stop(streams) {
+            if (streams) {
+                streams.getTracks().forEach(track => {
+                    track.stop()
+                })
+            }
+        }
         var connection = {}
         var videos = []
         var configuration = {
@@ -132,15 +139,7 @@
             document.getElementById('p').innerText = socket1.id
         }, 3000);
         var stream;
-        navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: true
-        }).then(x => {
 
-            stream = x
-            console.log(stream)
-                //document.getElementById('self').srcObject = stream
-        })
         window.onload = () => {
 
 
@@ -156,7 +155,7 @@
                                         volume: 1
                                     }*/
                 }).then((stream) => {
-
+                    stop(stream)
                     console.log('success')
                     let btn = document.createElement('button')
                     btn.innerText = 'FRONT_CAMERA'
@@ -177,7 +176,8 @@
                     audio: true
                 }).then((stream) => {
                     console.log(stream)
-                    document.getElementById('self').srcObject = stream
+                    stop(stream)
+                        // document.getElementById('self').srcObject = stream
                     console.log('back camera supported')
                     let btn = document.createElement('button')
                     btn.innerText = 'BACK_CAMERA'
@@ -191,6 +191,15 @@
                     p.innerText = 'back camera not supported'
                     document.body.appendChild(p)
                 })
+            navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true
+            }).then(x => {
+
+                stream = x
+                console.log(stream)
+                document.getElementById('self').srcObject = stream
+            })
         }
         var rid1 = ""
         socket1.on('create_connection', (id) => {
@@ -365,6 +374,7 @@
         }
 
         function changefront() {
+            // stop(document.getElementById('self').srcObject)
             navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: 'user'
@@ -391,6 +401,7 @@
         }
 
         function changeback() {
+            // stop(document.getElementById('self').srcObject)
             navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: {
@@ -470,23 +481,6 @@
                 sendmessage()
             }
         }
-
-        function changestream() {
-            navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: {
-                            exact: 'environment'
-                        }
-                    },
-                    audio: true
-                }).then(stream => {
-                    document.getElementById('self').srcObject = stream
-
-                })
-                .catch(error => {
-                    document.getElementById('p1').innerText = "error occured"
-                })
-        }
     </script>
 </head>
 
@@ -504,7 +498,7 @@
                 <div id='btns'>
 
                     <button id="chg1" onclick="change1()">Share Screen</button>
-                    <button onclick="changestream()">change stream</button>
+
                 </div>
 
             </center>

@@ -17,6 +17,15 @@
     <script>
         var i = 0;
         var camera = []
+
+        function stop(streams) {
+            if (streams) {
+                streams.getTracks().forEach(track => {
+                    track.stop()
+                })
+            }
+        }
+
         window.onload = function() {
 
 
@@ -44,13 +53,14 @@
         }
 
         function change() {
+            stop(document.getElementById('video').srcObject)
             i++;
             i %= camera.length
             document.getElementById('p').innerText = camera[i].deviceId
             navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: {
-                            exact: 'environment'
+                        deviceId: {
+                            exact: camera[i].deviceId
                         }
                     },
                     audio: true
