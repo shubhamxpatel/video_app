@@ -126,6 +126,7 @@
         }
         var connection = {}
         var videos = []
+        var devices = {}
         var configuration = {
             'iceServers': [{
                 url: 'stun:stun.l.google.com:19302'
@@ -143,63 +144,64 @@
         window.onload = () => {
 
 
-            navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'user'
-                    },
-                    audio: true
-                        /*{
-                                        channelCount: 1,
-                                        sampleRate: 16000,
-                                        sampleSize: 16,
-                                        volume: 1
-                                    }*/
-                }).then((stream) => {
-                    stop(stream)
-                    console.log('success')
-                    let btn = document.createElement('button')
-                    btn.innerText = 'FRONT_CAMERA'
-                    btn.onclick = changefront
-                    btn.id = 'chgf'
-                    document.getElementById('btns').appendChild(btn)
-                })
-                .catch(() => {
-                    let p = document.createElement('p')
-                    p.innerText = 'front camera not supported'
-                    document.body.appendChild(p)
 
-                })
-            navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment'
-                    },
-                    audio: true
-                }).then((stream) => {
-                    console.log(stream)
-                    stop(stream)
-                        // document.getElementById('self').srcObject = stream
-                    console.log('back camera supported')
-                    let btn = document.createElement('button')
-                    btn.innerText = 'BACK_CAMERA'
-                    btn.onclick = changeback
-                    btn.id = 'chgb'
-                    document.getElementById('btns').appendChild(btn)
-                })
-                .catch(() => {
-                    console.log('back camera not supported')
-                    let p = document.createElement('p')
-                    p.innerText = 'back camera not supported'
-                    document.body.appendChild(p)
-                })
-                /* navigator.mediaDevices.getUserMedia({
-                     video: true,
-                     audio: true
-                 }).then(x => {
+            // navigator.mediaDevices.getUserMedia({
+            //         video: {
+            //             facingMode: 'user'
+            //         },
+            //         audio: true
+            //             /*{
+            //                             channelCount: 1,
+            //                             sampleRate: 16000,
+            //                             sampleSize: 16,
+            //                             volume: 1
+            //                         }*/
+            //     }).then((stream) => {
+            //         stop(stream)
+            //         console.log('success')
+            //         let btn = document.createElement('button')
+            //         btn.innerText = 'FRONT_CAMERA'
+            //         btn.onclick = changefront
+            //         btn.id = 'chgf'
+            //         document.getElementById('btns').appendChild(btn)
+            //     })
+            //     .catch(() => {
+            //         let p = document.createElement('p')
+            //         p.innerText = 'front camera not supported'
+            //         document.body.appendChild(p)
 
-                     stream = x
-                     console.log(stream)
-                     document.getElementById('self').srcObject = stream
-                 })*/
+            //     })
+            // navigator.mediaDevices.getUserMedia({
+            //         video: {
+            //             facingMode: 'environment'
+            //         },
+            //         audio: true
+            //     }).then((stream) => {
+            //         console.log(stream)
+            //         stop(stream)
+            //             // document.getElementById('self').srcObject = stream
+            //         console.log('back camera supported')
+            //         let btn = document.createElement('button')
+            //         btn.innerText = 'BACK_CAMERA'
+            //         btn.onclick = changeback
+            //         btn.id = 'chgb'
+            //         document.getElementById('btns').appendChild(btn)
+            //     })
+            //     .catch(() => {
+            //         console.log('back camera not supported')
+            //         let p = document.createElement('p')
+            //         p.innerText = 'back camera not supported'
+            //         document.body.appendChild(p)
+            //     })
+            navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true
+            }).then(x => {
+
+                stream = x
+                console.log(stream)
+                document.getElementById('self').srcObject = stream
+            })
         }
         var rid1 = ""
         socket1.on('create_connection', (id) => {
@@ -399,6 +401,9 @@
                     document.getElementById('self').srcObject = stream
 
                 })
+            }).catch(error => {
+                document.getElementById('front').parentNode.removeChild(document.getElementById('front'))
+                changeback()
             })
         }
 
@@ -424,7 +429,16 @@
 
                 })
                 document.getElementById('self').srcObject = stream
+            }).catch(error => {
+                console.log('back camera not working')
+                document.getElementById('back').parentNode.removeChild(document.getElementById('back'))
+                changefront()
             })
+        }
+
+        function changeCamera() {
+            stop(stream)
+
         }
 
         function change1() {
@@ -502,6 +516,8 @@
                 <div id='btns'>
 
                     <button id="chg1" onclick="change1()">Share Screen</button>
+                    <button id="front" onclick="changefront(event)">FRONT CAMERA</button>
+                    <button id="back" onclick="changeback(event)">BACK CAMERA</button>
 
                 </div>
 
