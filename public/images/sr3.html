@@ -7,7 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script>
+        function stop() {
+            if (document.getElementById('video').srcObject) {
+                document.getElementById('video').srcObject.getTracks().forEach(track => {
+                    track.stop()
+                })
+            }
+        }
+
         function front() {
+            stop()
             navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: 'user'
@@ -22,6 +31,7 @@
         }
 
         function back() {
+            stop()
             navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: {

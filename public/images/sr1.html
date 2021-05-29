@@ -136,6 +136,7 @@
             video: true,
             audio: true
         }).then(x => {
+
             stream = x
             console.log(stream)
                 //document.getElementById('self').srcObject = stream
@@ -154,7 +155,8 @@
                                         sampleSize: 16,
                                         volume: 1
                                     }*/
-                }).then(() => {
+                }).then((stream) => {
+
                     console.log('success')
                     let btn = document.createElement('button')
                     btn.innerText = 'FRONT_CAMERA'
@@ -479,6 +481,7 @@
                     audio: true
                 }).then(stream => {
                     document.getElementById('self').srcObject = stream
+
                 })
                 .catch(error => {
                     document.getElementById('p1').innerText = "error occured"
