@@ -374,7 +374,7 @@
         }
 
         function changefront() {
-            // stop(document.getElementById('self').srcObject)
+            stop(stream)
             navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: 'user'
@@ -386,8 +386,9 @@
                                     sampleSize: 16,
                                     volume: 1
                                 }*/
-            }).then(stream => {
-                stream.getTracks().forEach(track => {
+            }).then(stream1 => {
+                stream = stream1
+                stream1.getTracks().forEach(track => {
                     videos.forEach(rid => {
                         connection[rid].getSenders().forEach(sender => {
                             if (sender.track.type === track.type) {
@@ -395,13 +396,14 @@
                             }
                         })
                     })
+                    document.getElementById('self').srcObject = stream
 
                 })
             })
         }
 
         function changeback() {
-            // stop(document.getElementById('self').srcObject)
+            stop(stream)
             navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: {
@@ -409,8 +411,9 @@
                     }
                 },
                 audio: true
-            }).then(stream => {
-                stream.getTracks().forEach(track => {
+            }).then(stream1 => {
+                stream = stream1
+                stream1.getTracks().forEach(track => {
                     videos.forEach(rid => {
                         connection[rid].getSenders().forEach(sender => {
                             if (sender.track.type === track.type) {
@@ -420,6 +423,7 @@
                     })
 
                 })
+                document.getElementById('self').srcObject = stream
             })
         }
 
