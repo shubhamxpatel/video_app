@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .App {
+            text-align: center;
+        }
+        
+        .App-logo {
+            height: 40vmin;
+            pointer-events: none;
+        }
+        
+        @media (prefers-reduced-motion: no-preference) {
+            .App-logo {
+                animation: App-logo-spin infinite 20s linear;
+            }
+        }
+        
+        p {
+            word-wrap: break-word;
+        }
+        
+        strong {
+            color: blue;
+        }
+        
+        button {
+            margin: 3px;
+        }
+        
+        form {
+            margin: 5px;
+        }
+        
+        input {
+            margin: 5px;
+        }
+        
+         ::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .box {
+            display: grid;
+            width: 100%;
+            grid-template-columns: 70% 30%;
+            grid-template-rows: 100%;
+        }
+        
+        body {
+            margin-left: 1vw;
+            margin-top: 1vh;
+            width: 98vw;
+            height: 98vh;
+        }
+        
+        .App-header {
+            background-color: #282c34;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(10px + 2vmin);
+            color: white;
+        }
+        
+        .App-link {
+            color: #61dafb;
+        }
+        
+        @keyframes App-logo-spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        #div1 {
+            display: flex;
+            flex-direction: row;
+            overflow: scroll;
+        }
+        
+        video {
+            margin: 10px;
+            box-shadow: -2px -2px 20px 5px black;
+            width: 400px;
+        }
+        
+        video::after {
+            content: "hello";
+            color: "green"
+        }
+        
+        option:hover {
+            background-color: blue;
+            color: brown;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://spvideoapp.herokuapp.com/socket.io/socket.io.js"></script>
+    <script>
+        const socket1 = io('https://spvideoapp.herokuapp.com', {
+            transports: ["websocket"]
+        })
+        var audio = new Audio('https://dl.prokerala.com/downloads/ringtones/files/mp3/bell-4836.mp3')
+        console.log(audio)
+            //audio.loop=true
+        audio.volume = 0.04
+            //audio.play()
+        var connection = {}
+        var videos = []
+        var configuration = {
+            'iceServers': [{
+                url: 'stun:stun.l.google.com:19302'
+            }, {
+                url: 'turn:3.143.222.94.3478',
+                credential: 'root',
+                username: 'user'
+            }]
+        }
+        setTimeout(() => {
+            document.getElementById('p').innerText = socket1.id
+        }, 3000);
+        var stream;
+        navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+        }).then(x => {
+            stream = x
+            console.log(stream)
+                //document.getElementById('self').srcObject = stream
+        })
+        window.onload = () => {
+
+
+            navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user'
+                    },
+                    audio: true
+                        /*{
+                                        channelCount: 1,
+                                        sampleRate: 16000,
+                                        sampleSize: 16,
+                                        volume: 1
+                                    }*/
+                }).then(() => {
+                    console.log('success')
+                    let btn = document.createElement('button')
+                    btn.innerText = 'FRONT_CAMERA'
+                    btn.onclick = changefront
+                    btn.id = 'chgf'
+                    document.getElementById('btns').appendChild(btn)
+                })
+                .catch(() => {
+                    let p = document.createElement('p')
+                    p.innerText = 'front camera not supported'
+                    document.body.appendChild(p)
+
+                })
+            navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment'
+                    },
+                    audio: true
+                }).then((stream) => {
+                    console.log(stream)
+                    document.getElementById('self').srcObject = stream
+                    console.log('back camera supported')
+                    let btn = document.createElement('button')
+                    btn.innerText = 'BACK_CAMERA'
+                    btn.onclick = changeback
+                    btn.id = 'chgb'
+                    document.getElementById('btns').appendChild(btn)
+                })
+                .catch(() => {
+                    console.log('back camera not supported')
+                    let p = document.createElement('p')
+                    p.innerText = 'back camera not supported'
+                    document.body.appendChild(p)
+                })
+        }
+        var rid1 = ""
+        socket1.on('create_connection', (id) => {
+            audio.play()
+            let caller = document.getElementById('callerdisplay')
+
+            console.log('incoming call', id)
+            caller.style.visibility = "visible"
+            caller.style.height = "fit-content"
+            rid1 = id
+
+        })
+
+        function receive() {
+            let caller = document.getElementById('callerdisplay')
+            caller.style.visibility = "hidden"
+
+            caller.style.height = "0px"
+            audio.pause()
+            call(rid1)
+            console.log(rid1)
+            createoffer(rid1)
+        }
+
+        function ignore() {
+            let caller = document.getElementById('callerdisplay')
+            caller.visibility = "hidden"
+            caller.style.height = "0px"
+            audio.pause()
+            rid1 = ""
+        }
+
+        function makecall() {
+            rid1 = document.getElementById('t').value
+            console.log('make call request by ', rid1)
+            call(rid1)
+            socket1.emit('create_connection', rid1)
+
+        }
+
+        function call(rid) {
+
+            var remotestream = new MediaStream()
+
+            connection[rid] = new RTCPeerConnection(configuration)
+            connection[rid].dc = connection[rid].createDataChannel('signal')
+            stream.getTracks().forEach(track => {
+                connection[rid].addTrack(track, stream)
+            })
+
+            connection[rid].onicecandidate = function(event) {
+                if (event.candidate) {
+                    console.log("receiver generate ice", event.candidate)
+                    socket1.emit('icecandidate', {
+                        candidate: event.candidate,
+                        to: rid
+                    })
+                }
+            }
+            connection[rid].ondatachannel = function(event) {
+                console.log('channel event')
+                connection[rid].dc = event.channel
+                console.log(connection[rid].dc)
+
+            }
+            console.log(connection[rid].ondatachannel, connection[rid].dc)
+            connection[rid].dc.onopen = function() {
+                console.log('channel is open')
+                let video = document.createElement('video')
+                video.id = rid
+                video.controls = true
+                video.autoplay = true
+                video.muted = true
+                video.height = 288
+                    // video.width=512
+                video.srcObject = remotestream
+                videos.push(rid)
+                document.getElementById('div1').appendChild(video)
+                connection[rid].onnegotiationneeded = function(event) {
+                    console.log("event negotiation neede")
+                    createoffer(rid)
+                }
+                let option = document.createElement("option")
+                option.value = rid
+                option.innerText = rid
+                document.getElementById('receiver').appendChild(option)
+
+
+
+
+            }
+            connection[rid].dc.onmessage = function(message) {
+                console.log(message.data)
+                let p = document.createElement("p")
+                p.style.color = "green"
+                p.style.width = "90%"
+                p.style.marginLeft = "10%"
+                p.style.textAlign = 'right'
+                p.style.padding = "5px"
+                p.style.backgroundColor = "wheat"
+                p.style.borderRadius = "10px"
+                p.innerHTML = `<strong>By ${rid}:</strong><br>${message.data}`
+                    //connection[rid].dc.send(p.innerText)
+                document.getElementById('commentbox').appendChild(p);
+            }
+
+
+
+            connection[rid].ontrack = function(event) {
+                console.log(event.track)
+                remotestream.addTrack(event.track, remotestream)
+
+            }
+
+
+
+            console.log(connection[rid], rid)
+        }
+        socket1.on('setice', async message => {
+            if (connection[message.to]) {
+                if (message.iceCandidate) {
+                    try {
+                        //console.log("it is setice receiver",message.iceCandidate)
+                        await connection[message.to].addIceCandidate(message.iceCandidate);
+                    } catch (e) {
+                        console.error('Error adding received ice candidate', e);
+                    }
+                }
+            }
+        })
+        socket1.on('answer', async(res) => {
+            if (connection[res.to]) {
+                console.log(res)
+                try {
+                    let remoteDesc = new RTCSessionDescription(res.answer);
+                    await connection[res.to].setRemoteDescription(remoteDesc);
+                } catch (error) {
+                    console.log(error)
+                }
+
+
+                console.log(connection[res.to].dc)
+
+
+                console.log("call answered")
+            }
+        })
+        socket1.on('offer', async message => {
+            if (connection[message.to]) {
+                console.log(message.offer)
+                await connection[message.to].setRemoteDescription(new RTCSessionDescription(message.offer))
+                createanswer(message.to)
+            }
+        })
+        async function createoffer(to) {
+            let offer = await connection[to].createOffer()
+            await connection[to].setLocalDescription(offer)
+            console.log(offer, to)
+            socket1.emit('makeCall', {
+                offer: offer,
+                to: to
+            })
+        }
+        async function createanswer(to) {
+            let answer = await connection[to].createAnswer()
+            console.log(answer)
+            await connection[to].setLocalDescription(answer)
+            socket1.emit('respondcall', {
+                'answer': answer,
+                'to': to
+            });
+        }
+
+        function changefront() {
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'user'
+                },
+                audio: true
+                    /*{
+                                    channelCount: 1,
+                                    sampleRate: 16000,
+                                    sampleSize: 16,
+                                    volume: 1
+                                }*/
+            }).then(stream => {
+                stream.getTracks().forEach(track => {
+                    videos.forEach(rid => {
+                        connection[rid].getSenders().forEach(sender => {
+                            if (sender.track.type === track.type) {
+                                sender.replaceTrack(track)
+                            }
+                        })
+                    })
+
+                })
+            })
+        }
+
+        function changeback() {
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: {
+                        exact: 'environment'
+                    }
+                },
+                audio: true
+            }).then(stream => {
+                stream.getTracks().forEach(track => {
+                    videos.forEach(rid => {
+                        connection[rid].getSenders().forEach(sender => {
+                            if (sender.track.type === track.type) {
+                                sender.replaceTrack(track)
+                            }
+                        })
+                    })
+
+                })
+            })
+        }
+
+        function change1() {
+            if ('mediaDevices' in navigator && 'getDisplayMedia' in navigator.mediaDevices) {
+                navigator.mediaDevices.getDisplayMedia({
+                        video: true,
+                        audio: true
+                    }).then(stream => {
+                        //window.alert('screenshare supports')
+                        let p = document.createElement('p')
+                        p.innerText = 'sharescreen supported'
+                        document.body.appendChild(p)
+                        stream.getTracks().forEach(track => {
+                            videos.forEach(rid => {
+                                connection[rid].getSenders().forEach(sender => {
+                                    if (sender.track.type === track.type) {
+                                        sender.replaceTrack(track)
+                                    }
+                                })
+                            })
+
+                        })
+                    })
+                    .catch(() => {
+                        /* document.getElementById('chg1').parentNode.removeChild(document.getElementById('chg1'))
+                         let p=document.createElement('p')
+                         p.innerText='sharescreen not supported'
+                         document.body.appendChild(p)*/
+                        //alert('sharescreen not supported')
+                    })
+            } else {
+                document.getElementById('chg1').parentNode.removeChild(document.getElementById('chg1'))
+                    //let p=document.createElement('p')
+                    //p.innerText='sharescreen not supported'
+                    //document.body.appendChild(p)
+            }
+        }
+
+        function sendmessage() {
+            if (document.getElementById('receiver').value !== "") {
+                connection[document.getElementById('receiver').value].dc.send(document.getElementById('send').value)
+                let p = document.createElement("p")
+                p.style.color = "red"
+                p.style.width = "90%"
+                p.style.textAlign = 'left'
+                p.style.marginLeft = "0px"
+                p.style.padding = "5px"
+                p.style.backgroundColor = "wheat"
+                p.style.borderRadius = "10px"
+                p.innerHTML = `<strong>To ${document.getElementById('receiver').value}: </strong><br>${document.getElementById("send").value}`
+                    //connection[rid].dc.send(p.innerText)
+                document.getElementById('commentbox').appendChild(p);
+            }
+        }
+
+        function check(event) {
+            if (event.keyCode === 13) {
+                sendmessage()
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="box">
+        <div style="padding:10px">
+            <center>
+                <p id='p'></p>
+
+                <form onsubmit=makecall(event) method="dialog">
+                    <input type="text" name="t" id="t" />
+                    <input type="submit" value="submit" />
+                </form>
+                <div id='btns'>
+
+                    <button id="chg1" onclick="change1()">Share Screen</button>
+                </div>
+
+            </center>
+
+
+
+
+
+        </div>
+        <div>
+            <video src="" style="width:80%" id="self" autoPlay muted></video>
+        </div>
+    </div>
+
+    <div id="div1">
+
+    </div>
+    <form onSubmit="sendmessage()" method="dialog">
+        <center>
+            <strong style="font-size: 1.5em">Select receiver: </strong>
+            <select name="receiver" id="receiver" style="padding: 3px">
+                <option value="" disabled>select receiver</option>
+            </select>
+            <p></p>
+            <input type="text" style="width:100%" id="send" placeholder="write message" onKeyPress="check(event)" />
+            <input type="submit" value="SEND MESSAGE" />
+        </center>
+    </form>
+
+
+    <div id="callerdisplay" style="border-radius: 10px;padding: 5px;background-color:gray;width:fit-content;margin-left: 50%;margin-top: 0%;transform: translate(-50%,0);border:2px solid black;box-shadow: -5px -5px 8px 5px red;overflow:
+        hidden;height: 0;visibility:hidden">
+        <p style="text-align:center">{Math.floor(Math.random()*154561564654654)}</p>
+        <div style="display: flex;justify-content: space-around">
+            <figure onclick="receive()">
+                <img src="https://png.pngitem.com/pimgs/s/207-2074671_free-green-phone-icon-hd-png-download.png" style="border-radius:50%" height="50" width="50" alt="" />
+                <figcaption>Receive</figcaption>
+            </figure>
+            <figure onclick="ignore()">
+                <img src="https://image.shutterstock.com/image-vector/decline-phone-call-button-handset-260nw-1141358105.jpg" style="border-radius:50%" height="50" width="50" alt="" />
+                <figcaption>Ignore</figcaption>
+            </figure>
+        </div>
+
+    </div>
+    <div id="commentbox" style="width:100%;padding:10px;height:35vh;background-color:whitesmoke;overflow:scroll">
+
+    </div>
+
+</body>
+
+</html>
