@@ -26,7 +26,7 @@ io.on(
             io.to(message.to).emit('setice', { iceCandidate: message.candidate, to: client.id })
         })
         client.on('disconnect', () => {
-            socket.emit('user disconnected', client.id)
+            io.emit('user disconnected', client.id)
         })
 
     }
