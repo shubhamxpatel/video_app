@@ -141,71 +141,11 @@
         }, 3000);
         var stream;
 
-        window.onload = () => {
-
-
-
-            // navigator.mediaDevices.getUserMedia({
-            //         video: {
-            //             facingMode: 'user'
-            //         },
-            //         audio: true
-            //             /*{
-            //                             channelCount: 1,
-            //                             sampleRate: 16000,
-            //                             sampleSize: 16,
-            //                             volume: 1
-            //                         }*/
-            //     }).then((stream) => {
-            //         stop(stream)
-            //         console.log('success')
-            //         let btn = document.createElement('button')
-            //         btn.innerText = 'FRONT_CAMERA'
-            //         btn.onclick = changefront
-            //         btn.id = 'chgf'
-            //         document.getElementById('btns').appendChild(btn)
-            //     })
-            //     .catch(() => {
-            //         let p = document.createElement('p')
-            //         p.innerText = 'front camera not supported'
-            //         document.body.appendChild(p)
-
-            //     })
-            // navigator.mediaDevices.getUserMedia({
-            //         video: {
-            //             facingMode: 'environment'
-            //         },
-            //         audio: true
-            //     }).then((stream) => {
-            //         console.log(stream)
-            //         stop(stream)
-            //             // document.getElementById('self').srcObject = stream
-            //         console.log('back camera supported')
-            //         let btn = document.createElement('button')
-            //         btn.innerText = 'BACK_CAMERA'
-            //         btn.onclick = changeback
-            //         btn.id = 'chgb'
-            //         document.getElementById('btns').appendChild(btn)
-            //     })
-            //     .catch(() => {
-            //         console.log('back camera not supported')
-            //         let p = document.createElement('p')
-            //         p.innerText = 'back camera not supported'
-            //         document.body.appendChild(p)
-            //     })
-            navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true
-            }).then(x => {
-
-                stream = x
-                console.log(stream)
-                document.getElementById('self').srcObject = stream
-            })
-        }
-        var rid1 = ""
+        var rid = ""
         socket1.on('create_connection', (id) => {
             audio.play()
+            document.getElementById('idnum').innerText = id
+
             let caller = document.getElementById('callerdisplay')
 
             console.log('incoming call', id)
@@ -284,6 +224,7 @@
                     console.log("event negotiation neede")
                     createoffer(rid)
                 }
+
                 let option = document.createElement("option")
                 option.value = rid
                 option.innerText = rid
@@ -292,6 +233,12 @@
 
 
 
+            }
+            connection[rid].dc.onclose = function(event) {
+                console.log('connection close')
+                document.getElementById(rid).parentNode.removeChild(document.getElementById(rid))
+                connection[rid].close()
+                delete connection[rid]
             }
             connection[rid].dc.onmessage = function(message) {
                 console.log(message.data)
@@ -551,7 +498,7 @@
 
     <div id="callerdisplay" style="border-radius: 10px;padding: 5px;background-color:gray;width:fit-content;margin-left: 50%;margin-top: 0%;transform: translate(-50%,0);border:2px solid black;box-shadow: -5px -5px 8px 5px red;overflow:
         hidden;height: 0;visibility:hidden">
-        <p style="text-align:center">{Math.floor(Math.random()*154561564654654)}</p>
+        <p style="text-align:center" id="idnum">{Math.floor(Math.random()*154561564654654)}</p>
         <div style="display: flex;justify-content: space-around">
             <figure onclick="receive()">
                 <img src="https://png.pngitem.com/pimgs/s/207-2074671_free-green-phone-icon-hd-png-download.png" style="border-radius:50%" height="50" width="50" alt="" />

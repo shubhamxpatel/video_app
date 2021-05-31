@@ -25,6 +25,10 @@ io.on(
             console.log(message)
             io.to(message.to).emit('setice', { iceCandidate: message.candidate, to: client.id })
         })
+        client.on('disconnect', () => {
+            socket.emit('user disconnected', client.id)
+        })
+
     }
 )
 
